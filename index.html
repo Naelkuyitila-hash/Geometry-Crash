@@ -3,70 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Crash - Face & Music Edition</title>
+    <title>Geometry Rhythm - Portals Edition</title>
     <style>
-        :root { --primary: #00ffcc; }
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #050505; font-family: 'Arial Black', sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; }
+        :root { --primary: #00ffcc; --ship: #ff00ff; --cube: #00ffff; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; }
+        canvas { display: block; }
         
-        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.9); z-index: 100; color: white; }
-        .container { text-align: center; padding: 25px; border: 3px solid var(--primary); border-radius: 30px; background: #111; width: 90%; max-width: 450px; border: 4px solid var(--primary); }
+        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.85); z-index: 100; color: white; }
+        .container { text-align: center; padding: 30px; border: 4px solid var(--primary); border-radius: 40px; background: #0a0a0a; width: 90%; max-width: 450px; box-shadow: 0 0 60px rgba(0,255,204,0.3); }
         
-        .menu-row { margin: 12px 0; text-align: left; }
-        label { font-size: 12px; text-transform: uppercase; color: var(--primary); margin-left: 5px; }
-        select { background: #222; color: white; border: 2px solid #444; padding: 10px; border-radius: 10px; width: 100%; font-size: 16px; font-family: inherit; margin-top: 5px; }
+        .selection-grid { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+        .item { width: 50px; height: 50px; border-radius: 12px; cursor: pointer; border: 2px solid #333; display: flex; align-items: center; justify-content: center; background: #1a1a1a; font-size: 24px; transition: 0.2s; }
+        .item.active { border-color: #fff; background: var(--primary); transform: translateY(-5px) scale(1.1); }
         
-        button { padding: 18px; font-size: 22px; font-weight: 900; background: var(--primary); border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; color: #000; width: 100%; margin-top: 10px; }
-
-        .faces { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
-        .face-option { width: 50px; height: 50px; background: #222; border: 2px solid #444; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
-        .face-option.active { border-color: var(--primary); background: #333; transform: scale(1.1); }
-
-        .colors { display: flex; gap: 10px; margin: 15px 0; justify-content: center; }
-        .dot { width: 35px; height: 35px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
-        .dot.active { border-color: white; transform: scale(1.1); }
-
-        #rotate-message { display: none; position: fixed; inset: 0; background: #000; color: white; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
-        @media (orientation: portrait) { #rotate-message { display: flex; } }
+        button { padding: 20px; font-size: 26px; font-weight: 900; background: var(--primary); border: none; border-radius: 20px; cursor: pointer; text-transform: uppercase; color: #000; width: 100%; box-shadow: 0 6px 0 #008877; }
+        button:active { transform: translateY(4px); box-shadow: none; }
     </style>
 </head>
 <body>
 
-<div id="rotate-message"><h1>🔄</h1><h2>PASSE EN PAYSAGE</h2></div>
-
 <div id="ui">
     <div class="container">
-        <h1 style="margin:0 0 10px 0; font-size: 28px;">GEO CRASH</h1>
+        <h1 style="letter-spacing: 2px; margin-bottom: 5px;">RHYTHM CRASH</h1>
+        <p style="color: #666; font-size: 12px; margin-bottom: 20px;">LANCE LA MUSIQUE DU CHAT PUIS CLIQUE SUR START</p>
         
-        <div class="menu-row">
-            <label>Difficulté</label>
-            <select id="levelSelect">
-                <option value="facile">FACILE</option>
-                <option value="moyen" selected>MOYEN</option>
-                <option value="difficile">DIFFICILE</option>
-                <option value="impossible">IMPOSSIBLE</option>
-            </select>
+        <div class="selection-grid" id="faceSelector">
+            <div class="item active" data-face="normal">🙂</div>
+            <div class="item" data-face="angry">😠</div>
+            <div class="item" data-face="cool">😎</div>
+            <div class="item" data-face="wow">😲</div>
         </div>
 
-        <div class="menu-row">
-            <label>Visage</label>
-            <div class="faces">
-                <div class="face-option active" data-face="happy">🙂</div>
-                <div class="face-option" data-face="cool">😎</div>
-                <div class="face-option" data-face="wow">😮</div>
-                <div class="face-option" data-face="angry">😡</div>
-            </div>
-        </div>
-
-        <div class="colors">
-            <div class="dot active" style="background:#00ffcc" data-color="#00ffcc"></div>
-            <div class="dot" style="background:#ffea00" data-color="#ffea00"></div>
-            <div class="dot" style="background:#ff0077" data-color="#ff0077"></div>
-            <div class="dot" style="background:#0099ff" data-color="#0099ff"></div>
+        <div class="selection-grid" id="colorSelector">
+            <div class="item active" style="background:#00ffcc" data-color="#00ffcc"></div>
+            <div class="item" style="background:#ffea00" data-color="#ffea00"></div>
+            <div class="item" style="background:#ff0077" data-color="#ff0077"></div>
+            <div class="item" style="background:#0099ff" data-color="#0099ff"></div>
         </div>
         
-        <button id="playBtn">LANCER</button>
+        <button id="playBtn">START SYNC</button>
     </div>
 </div>
 
@@ -76,161 +51,199 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = document.getElementById("ui");
-const playBtn = document.getElementById("playBtn");
 
-let isPlaying = false, isPressing = false;
-let groundY, ceilingY, score = 0, speed = 9, shake = 0;
-let obstacles = [], portals = [], pillars = [];
-let nextSpawn = 0, nextPortal = 600;
+let isPlaying = false, isPressing = false, score = 0, speed = 10;
+let obstacles = [], portals = [], pillars = [], trail = [];
+let beatCounter = 0, groundY, ceilingY;
+
+// Config Rythme (140 BPM)
+const bpm = 140;
+const beatInterval = (60 / bpm) * 60; // Frames environ (60fps)
 
 let player = {
-    x: 150, y: 0, size: 40, vy: 0, gravity: 0.9, jump: -16, 
-    rot: 0, color: "#00ffcc", face: "happy", grounded: false, 
-    mode: "cube", gravDir: 1 
-};
-
-const faces = {
-    happy: (c) => { 
-        c.fillRect(-10, -10, 5, 5); c.fillRect(5, -10, 5, 5); // Yeux
-        c.fillRect(-10, 5, 20, 3); // Bouche
-    },
-    cool: (c) => {
-        c.fillRect(-12, -10, 24, 6); // Lunettes
-        c.fillRect(-8, 5, 16, 2); // Sourire discret
-    },
-    wow: (c) => {
-        c.fillRect(-10, -10, 5, 5); c.fillRect(5, -10, 5, 5);
-        c.strokeRect(-4, 4, 8, 8); // Bouche ronde
-    },
-    angry: (c) => {
-        c.lineWidth = 2; c.beginPath(); c.moveTo(-12, -12); c.lineTo(-4, -8); c.moveTo(12, -12); c.lineTo(4, -8); c.stroke(); // Sourcils
-        c.fillRect(-10, -5, 4, 4); c.fillRect(6, -5, 4, 4);
-        c.fillRect(-8, 8, 16, 2);
-    }
+    x: 180, y: 0, size: 40, vy: 0, gravity: 1.0, jump: -17, 
+    rot: 0, color: "#00ffcc", face: "normal", mode: "cube", gravDir: 1
 };
 
 function resize() {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    groundY = canvas.height - 80; ceilingY = 80;
+    groundY = canvas.height - 100; ceilingY = 100;
 }
 window.addEventListener('resize', resize);
 resize();
 
 // --- SELECTION ---
-document.querySelectorAll('.face-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-        document.querySelectorAll('.face-option').forEach(f => f.classList.remove('active'));
-        opt.classList.add('active'); player.face = opt.dataset.face;
-    });
-});
-
-document.querySelectorAll('.dot').forEach(dot => {
-    dot.addEventListener('click', () => {
-        document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
-        dot.classList.add('active'); player.color = dot.dataset.color;
+document.getElementById('faceSelector').onclick = (e) => {
+    if(e.target.dataset.face) {
+        document.querySelectorAll('#faceSelector .item').forEach(i => i.classList.remove('active'));
+        e.target.classList.add('active'); player.face = e.target.dataset.face;
+    }
+};
+document.getElementById('colorSelector').onclick = (e) => {
+    if(e.target.dataset.color) {
+        document.querySelectorAll('#colorSelector .item').forEach(i => i.classList.remove('active'));
+        e.target.classList.add('active'); player.color = e.target.dataset.color;
         document.documentElement.style.setProperty('--primary', player.color);
-    });
-});
+    }
+};
 
-// --- JEU ---
-playBtn.addEventListener('click', () => {
-    isPlaying = true; ui.style.display = "none";
-    score = 0; obstacles = []; portals = []; pillars = [];
-    player.vy = 0; player.rot = 0; player.mode = "cube"; player.gravDir = 1;
-    player.y = groundY - player.size;
-});
+// --- CORE ---
+document.getElementById('playBtn').onclick = () => {
+    isPlaying = true; score = 0; obstacles = []; portals = []; pillars = []; trail = [];
+    player.mode = "cube"; player.y = groundY - player.size;
+    ui.style.display = "none";
+};
 
-const jump = () => { if (player.grounded) { player.vy = player.jump * player.gravDir; player.grounded = false; } };
-window.addEventListener('mousedown', () => { if(isPlaying) { isPressing = true; if(player.mode === "cube") jump(); }});
-window.addEventListener('mouseup', () => isPressing = false);
-window.addEventListener('touchstart', (e) => { if(isPlaying && e.target.tagName !== "BUTTON") { isPressing = true; if(player.mode === "cube") jump(); e.preventDefault(); } }, {passive: false});
-window.addEventListener('touchend', () => isPressing = false);
+window.onmousedown = () => isPressing = true;
+window.onmouseup = () => isPressing = false;
 
-function gameOver() {
-    isPlaying = false; shake = 20; ui.style.display = "flex";
+function spawnRhythmObstacle() {
+    if (player.mode === "cube") {
+        // Apparition calée sur le temps
+        obstacles.push({x: canvas.width, w: 35, h: 42, type: 'bottom'});
+        if (score % 200 > 150) obstacles.push({x: canvas.width + 40, w: 35, h: 42, type: 'bottom'});
+    } else {
+        // Piliers en escalier (rythmique)
+        let wave = Math.sin(score * 0.05) * 100;
+        let gap = 180;
+        let baseH = (groundY - ceilingY) / 2 + wave;
+        pillars.push({x: canvas.width, w: 60, h: baseH - gap/2, pos: 'top'});
+        pillars.push({x: canvas.width, w: 60, h: (groundY - ceilingY) - (baseH + gap/2), pos: 'bottom'});
+    }
 }
 
 function update() {
     if (!isPlaying) return;
+
+    // Rythme
+    beatCounter++;
+    if (beatCounter >= beatInterval) {
+        spawnRhythmObstacle();
+        beatCounter = 0;
+    }
+
+    // Physique
     if (player.mode === "ship") {
-        player.vy += (isPressing ? -0.8 : 0.8) * player.gravDir;
-        player.vy *= 0.95; player.rot = player.vy * 2;
+        player.vy += (isPressing ? -0.9 : 0.9);
+        player.vy *= 0.94;
+        player.rot = player.vy * 3;
     } else {
-        player.vy += player.gravity * player.gravDir;
-        if (!player.grounded) player.rot += 6 * player.gravDir;
+        player.vy += player.gravity;
+        if (isPressing && player.grounded) player.vy = player.jump;
+        if (!player.grounded) player.rot += 7;
     }
     player.y += player.vy;
 
-    if (player.y >= groundY - player.size && player.gravDir === 1) {
-        player.y = groundY - player.size; player.vy = 0; player.grounded = true; player.rot = Math.round(player.rot/90)*90;
-    } else if (player.y <= ceilingY && player.gravDir === -1) {
-        player.y = ceilingY; player.vy = 0; player.grounded = true; player.rot = Math.round(player.rot/90)*90;
+    // Sol
+    if (player.y >= groundY - player.size) {
+        player.y = groundY - player.size; player.vy = 0; player.grounded = true;
+        player.rot = Math.round(player.rot/90)*90;
     } else player.grounded = false;
 
-    if (player.y < ceilingY - 20 || player.y > groundY + 20) gameOver();
+    if (player.y < ceilingY || player.y > groundY) { isPlaying = false; ui.style.display = "flex"; }
 
-    if (nextSpawn-- <= 0) {
-        if (player.mode === "cube") {
-            let n = Math.floor(Math.random() * 3) + 1;
-            for(let i=0; i<n; i++) obstacles.push({ x: canvas.width + (i*32), w: 32, h: 38, type: player.gravDir === 1 ? 'bottom' : 'top' });
-        } else {
-            let gap = 180, h = 40 + Math.random() * (groundY - ceilingY - gap - 40);
-            pillars.push({ x: canvas.width, w: 60, h: h, pos: 'top' }, { x: canvas.width, w: 60, h: (groundY-ceilingY)-h-gap, pos: 'bottom' });
-        }
-        nextSpawn = 45 + Math.random() * 30;
-    }
-
-    if (score > nextPortal) {
-        portals.push({ x: canvas.width, type: player.mode === "cube" ? "ship" : "cube", grav: Math.random() > 0.8 ? -player.gravDir : player.gravDir });
-        nextPortal = score + 1200;
-    }
-
-    [obstacles, portals, pillars].forEach(list => {
-        for(let i=list.length-1; i>=0; i--) {
-            let o = list[i]; o.x -= speed;
-            if(o.x < -100) list.splice(i, 1);
-            let m = 8;
-            if (player.x + player.size - m > o.x && player.x + m < o.x + (o.w || 30)) {
-                if (o.h) {
-                    let yMin = (o.type === 'top' || o.pos === 'top') ? ceilingY : groundY - o.h;
-                    let yMax = (o.type === 'top' || o.pos === 'top') ? ceilingY + o.h : groundY;
-                    if (player.y + player.size - m > yMin && player.y + m < yMax) gameOver();
-                } else { player.mode = o.type; player.gravDir = o.grav; list.splice(i, 1); }
+    // Objets & Portails
+    [obstacles, pillars].forEach(list => {
+        list.forEach((obj, i) => {
+            obj.x -= speed;
+            if (player.x < obj.x + obj.w && player.x + player.size > obj.x) {
+                let yMin = (obj.pos==='top'||obj.type==='top') ? ceilingY : groundY-obj.h;
+                let yMax = (obj.pos==='top'||obj.type==='top') ? ceilingY+obj.h : groundY;
+                if (player.y < yMax && player.y + player.size > yMin) { isPlaying = false; ui.style.display = "flex"; }
             }
+        });
+    });
+
+    if (score % 800 === 0 && score > 0) portals.push({x: canvas.width, type: player.mode==="cube"?"ship":"cube"});
+    portals.forEach((p, i) => {
+        p.x -= speed;
+        if (player.x + player.size > p.x && player.x < p.x + 40) {
+            player.mode = p.type; portals.splice(i, 1);
         }
     });
+
+    // Trail (Traînée)
+    trail.push({x: player.x, y: player.y + player.size/2});
+    if (trail.length > 15) trail.shift();
+
     score++;
 }
 
 function draw() {
-    ctx.save();
-    if (shake > 0) { ctx.translate(Math.random()*shake-shake/2, Math.random()*shake-shake/2); shake *= 0.9; }
-    ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width, canvas.height);
+    
+    // Grille de fond qui pulse avec le rythme
+    let pulse = Math.sin(score * 0.1) * 2;
+    ctx.strokeStyle = `rgba(0, 255, 204, ${0.05 + pulse * 0.01})`;
+    for(let i=-(score*speed)%100; i<canvas.width; i+=100) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+    }
 
-    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 80); ctx.fillRect(0, 0, canvas.width, ceilingY);
-    ctx.fillStyle = player.color; ctx.fillRect(0, groundY, canvas.width, 3); ctx.fillRect(0, ceilingY, canvas.width, 3);
+    // Sols Néon
+    ctx.shadowBlur = 15; ctx.shadowColor = player.color;
+    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 100); ctx.fillRect(0, 0, canvas.width, ceilingY);
+    ctx.fillStyle = player.color; ctx.fillRect(0, groundY, canvas.width, 4); ctx.fillRect(0, ceilingY-4, canvas.width, 4);
 
-    pillars.forEach(p => { ctx.fillStyle = "#1a1a1a"; ctx.strokeStyle = player.color; let y = p.pos === 'top' ? ceilingY : groundY - p.h; ctx.fillRect(p.x, y, p.w, p.h); ctx.strokeRect(p.x, y, p.w, p.h); });
-    portals.forEach(p => { ctx.fillStyle = p.type === "ship" ? "#ff00ff" : "#00ffff"; ctx.fillRect(p.x, ceilingY, 30, groundY - ceilingY); });
+    // Traînée
+    ctx.beginPath();
+    ctx.strokeStyle = player.color; ctx.lineWidth = 4;
+    trail.forEach((t, i) => {
+        ctx.globalAlpha = i / trail.length;
+        i === 0 ? ctx.moveTo(t.x, t.y) : ctx.lineTo(t.x, t.y);
+    });
+    ctx.stroke(); ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
+    // Portails Stylisés
+    portals.forEach(p => {
+        let col = p.type === "ship" ? "#ff00ff" : "#00ffff";
+        ctx.shadowBlur = 20; ctx.shadowColor = col;
+        ctx.fillStyle = col;
+        // Anneau du portail
+        ctx.beginPath(); ctx.ellipse(p.x+20, (groundY+ceilingY)/2, 25, (groundY-ceilingY)/2 - 20, 0, 0, Math.PI*2);
+        ctx.fill();
+        // Particules de portail
+        for(let j=0; j<5; j++) {
+            ctx.fillRect(p.x + Math.random()*40, ceilingY + Math.random()*(groundY-ceilingY), 4, 4);
+        }
+        ctx.shadowBlur = 0;
+    });
+
+    // Piliers et Piques
+    ctx.fillStyle = "#1a1a1a"; ctx.strokeStyle = player.color;
+    pillars.forEach(p => {
+        let y = p.pos === 'top' ? ceilingY : groundY-p.h;
+        ctx.fillRect(p.x, y, p.w, p.h); ctx.strokeRect(p.x, y, p.w, p.h);
+    });
+
+    ctx.fillStyle = "#ff0055"; ctx.shadowBlur = 10; ctx.shadowColor = "#ff0055";
+    obstacles.forEach(o => {
+        ctx.beginPath();
+        ctx.moveTo(o.x, groundY); ctx.lineTo(o.x+o.w/2, groundY-o.h); ctx.lineTo(o.x+o.w, groundY);
+        ctx.fill();
+    });
+
+    // Joueur
     ctx.save();
     ctx.translate(player.x + player.size/2, player.y + player.size/2);
     ctx.rotate(player.rot * Math.PI / 180);
+    ctx.shadowBlur = 15; ctx.shadowColor = player.color;
     ctx.fillStyle = player.color;
-    if(player.mode === "ship") {
-        ctx.beginPath(); ctx.moveTo(-22, 18); ctx.lineTo(28, 0); ctx.lineTo(-22, -18); ctx.fill();
-        ctx.strokeStyle = "white"; ctx.stroke();
+    if(player.mode === "cube") {
+        ctx.fillRect(-20, -20, 40, 40);
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(-20, -20, 40, 40);
     } else {
-        ctx.fillRect(-20, -20, 40, 40); ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(-20, -20, 40, 40);
+        ctx.beginPath(); ctx.moveTo(-20, 15); ctx.lineTo(25, 0); ctx.lineTo(-20, -15); ctx.fill();
     }
-    // Dessin du visage
-    ctx.fillStyle = "white"; ctx.strokeStyle = "white"; faces[player.face](ctx);
+    
+    // Visage
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    if(player.face === "angry") { ctx.fillRect(-12, -10, 8, 4); ctx.fillRect(4, -10, 8, 4); ctx.fillRect(-10, 8, 20, 2); }
+    else if(player.face === "cool") { ctx.fillRect(-15, -12, 30, 8); }
+    else if(player.face === "wow") { ctx.fillRect(-10, -10, 5, 10); ctx.fillRect(5, -10, 5, 10); ctx.fillRect(-5, 5, 10, 8); }
+    else { ctx.fillRect(-12, -10, 6, 6); ctx.fillRect(6, -10, 6, 6); ctx.fillRect(-8, 8, 16, 2); }
+    
     ctx.restore();
 
-    ctx.fillStyle = "#ff0055";
-    obstacles.forEach(o => { ctx.beginPath(); let yB = o.type === 'bottom' ? groundY : ceilingY; let yT = o.type === 'bottom' ? groundY - o.h : ceilingY + o.h; ctx.moveTo(o.x, yB); ctx.lineTo(o.x + 16, yT); ctx.lineTo(o.x + 32, yB); ctx.fill(); });
-
-    ctx.restore();
     update();
     requestAnimationFrame(draw);
 }
