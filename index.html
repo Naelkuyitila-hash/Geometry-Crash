@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geometry Crash PRO</title>
+    <style>
+        :root { --primary: #00ffcc; }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background: #050505; 
+            font-family: 'Arial Black', sans-serif; position: fixed;
+        }
+
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        #ui {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.85); z-index: 10; color: white; transition: opacity 0.3s;
+        }
+
+        .container {
+            text-align: center; padding: 40px; border: 3px solid var(--primary);
+            border-radius: 30px; background: #111; width: 85%; max-width: 400px;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.15);
+        }
+
+        h1 { margin: 0 0 10px; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; }
+        #best-score { font-size: 14px; color: #aaa; margin-bottom: 20px; text-transform: uppercase; }
+
+        button {
+            padding: 18px 60px; font-size: 24px; font-weight: 900;
+            background: var(--primary); border: none; border-radius: 15px;
+            cursor: pointer; transition: 0.1s; text-transform: uppercase; color: #000;
+        }
+        button:active { transform: scale(0.9); filter: brightness(1.2); }
+        
+        .colors { display: flex; gap: 12px; margin: 25px 0; justify-content: center; }
+        .dot { width: 35px; height: 35px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; }
+        .dot.active { border-color: white; transform: scale(1.15); box-shadow: 0 0 15px currentColor; }
+
+        #rotate-message {
+            display: none; position: fixed; inset: 0; background: #000; color: white; 
+            z-index: 100; flex-direction: column; justify-content: center; align-items: center;
+        }
+        @media (orientation: portrait) { #rotate-message { display: flex; } }
+    </style>
+</head>
+<body>
+
+<div id="rotate-message">
+    <h1 style="font-size: 50px;">🔄</h1>
+    <h2>TOURNE TON ÉCRAN</h2>
+    <p>Le jeu se joue en mode paysage.</p>
+</div>
+
+<div id="ui">
+    <div class="container">
+        <h1 id="msg">GEOMETRY CRASH</h1>
+        <div id="best-score">Record: 0</div>
+        <div class="colors">
+            <div class="dot active" style="background:#00ffcc" data-color="#00ffcc"></div>
+            <div class="dot" style="background:#ffea00" data-color="#ffea00"></div>
+            <div class="dot" style="background:#ff0077" data-color="#ff0077"></div>
+            <div class="dot" style="background:#0099ff" data-color="#0099ff"></div>
+        </div>
+        <button id="playBtn">JOUER</button>
+    </div>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const ui = document.getElementById("ui");
+const playBtn = document.getElementById("playBtn");
+const bestScoreEl = document.getElementById("best-score");
+
+// --- État du Jeu ---
+let isPlaying = false;
+let groundY, score = 0, speed = 8;
+let obstacles = [], particles = [];
+let nextSpawn = 0;
+let highScore = localStorage.getItem("geoCrashScore") || 0;
+bestScoreEl.innerText = `Record: ${highScore}`;
+
+let player = {
+    x: 120, y: 0, size: 42, 
+    vy: 0, gravity: 0.9, jump: -17, 
+    rot: 0, color: "#00ffcc", grounded: false
+};
+
+// --- Fonctions Utilitaires ---
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    groundY = canvas.height - 80;
+    if(!isPlaying) player.y = groundY - player.size;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// --- Système de Particules ---
+function spawnParticle(x, y, color) {
+    for(let i=0; i<2; i++) {
+        particles.push({
+            x, y, 
+            vx: Math.random() * -5 - 2, 
+            vy: Math.random() * -3 - 1, 
+            life: 1.0, color
+        });
+    }
+}
+
+// --- Contrôles ---
+document.querySelectorAll('.dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+        document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+        dot.classList.add('active');
+        player.color = dot.dataset.color;
+        document.documentElement.style.setProperty('--primary', player.color);
+    });
+});
+
+function jump() {
+    if (isPlaying && player.grounded) {
+        player.vy = player.jump;
+        player.grounded = false;
+    }
+}
+
+playBtn.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    start(); 
+});
+window.addEventListener('keydown', (e) => { if(e.code === "Space") jump(); });
+window.addEventListener('touchstart', (e) => { 
+    if(isPlaying && e.target.tagName !== "BUTTON") { jump(); e.preventDefault(); }
+}, {passive: false});
+
+// --- Boucle Principale ---
+function start() {
+    isPlaying = true;
+    ui.style.opacity = "0";
+    setTimeout(() => ui.style.display = "none", 300);
+    score = 0; speed = 8; obstacles = []; particles = [];
+    player.vy = 0; player.rot = 0;
+}
+
+function gameOver() {
+    isPlaying = false;
+    if (Math.floor(score/10) > highScore) {
+        highScore = Math.floor(score/10);
+        localStorage.setItem("geoCrashScore", highScore);
+    }
+    document.getElementById("msg").innerText = "SCORE: " + Math.floor(score/10);
+    bestScoreEl.innerText = `Record: ${highScore}`;
+    ui.style.display = "flex";
+    ui.style.opacity = "1";
+}
+
+function update() {
+    if (!isPlaying) return;
+
+    // Physique
+    player.vy += player.gravity;
+    player.y += player.vy;
+
+    if (player.y >= groundY - player.size) {
+        player.y = groundY - player.size;
+        player.vy = 0;
+        player.grounded = true;
+        player.rot = Math.round(player.rot / 90) * 90;
+        if (score % 3 === 0) spawnParticle(player.x, groundY, player.color);
+    } else {
+        player.grounded = false;
+        player.rot += 6;
+    }
+
+    // Obstacles
+    if (nextSpawn <= 0) {
+        const type = Math.random();
+        const count = type > 0.8 ? 2 : 1; // Parfois deux piques collées
+        for(let i=0; i<count; i++) {
+            obstacles.push({ x: canvas.width + (i*32), w: 34, h: 38 });
+        }
+        nextSpawn = 40 + (Math.random() * 30) + (400 / (speed/5)); 
+    }
+    nextSpawn--;
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        let o = obstacles[i];
+        o.x -= speed;
+
+        // Hitbox "Fair-play"
+        const margin = 8;
+        if (player.x + player.size - margin > o.x && 
+            player.x + margin < o.x + o.w && 
+            player.y + player.size - margin > groundY - o.h) {
+            gameOver();
+        }
+        if (o.x < -100) obstacles.splice(i, 1);
+    }
+
+    // Particules
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    speed += 0.0015;
+    score++;
+}
+
+function draw() {
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Sol Neon
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    ctx.shadowBlur = 15; ctx.shadowColor = player.color;
+    ctx.fillStyle = player.color;
+    ctx.fillRect(0, groundY, canvas.width, 2);
+
+    // Joueur
+    ctx.save();
+    ctx.translate(player.x + player.size/2, player.y + player.size/2);
+    ctx.rotate(player.rot * Math.PI / 180);
+    ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
+    ctx.strokeStyle = "white"; ctx.lineWidth = 3;
+    ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
+    ctx.restore();
+
+    // Obstacles (Piques)
+    ctx.shadowColor = "#ff0055";
+    ctx.fillStyle = "#ff0055";
+    obstacles.forEach(o => {
+        ctx.beginPath();
+        ctx.moveTo(o.x, groundY);
+        ctx.lineTo(o.x + o.w/2, groundY - o.h);
+        ctx.lineTo(o.x + o.w, groundY);
+        ctx.fill();
+    });
+
+    // Particules
+    ctx.shadowBlur = 0;
+    particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 3, 3);
+    });
+    ctx.globalAlpha = 1;
+
+    if (isPlaying) {
+        ctx.fillStyle = "white";
+        ctx.font = "bold 35px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(Math.floor(score/10), canvas.width/2, 70);
+    }
+
+    update();
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
