@@ -3,25 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Crash - Ultimate Version</title>
+    <title>Geometry Crash - Face & Music Edition</title>
     <style>
         :root { --primary: #00ffcc; }
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #050505; font-family: 'Arial Black', sans-serif; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.9); z-index: 100; color: white; transition: 0.3s; }
-        .container { text-align: center; padding: 25px; border: 3px solid var(--primary); border-radius: 30px; background: #111; width: 90%; max-width: 450px; box-shadow: 0 0 30px rgba(0,255,204,0.2); }
+        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.9); z-index: 100; color: white; }
+        .container { text-align: center; padding: 25px; border: 3px solid var(--primary); border-radius: 30px; background: #111; width: 90%; max-width: 450px; border: 4px solid var(--primary); }
         
-        .menu-row { margin: 15px 0; }
-        select { background: #222; color: white; border: 2px solid #444; padding: 12px; border-radius: 10px; width: 100%; font-size: 16px; font-family: inherit; cursor: pointer; }
+        .menu-row { margin: 12px 0; text-align: left; }
+        label { font-size: 12px; text-transform: uppercase; color: var(--primary); margin-left: 5px; }
+        select { background: #222; color: white; border: 2px solid #444; padding: 10px; border-radius: 10px; width: 100%; font-size: 16px; font-family: inherit; margin-top: 5px; }
         
-        button { padding: 18px; font-size: 22px; font-weight: 900; background: var(--primary); border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; color: #000; width: 100%; transition: 0.2s; }
-        button:hover { filter: brightness(1.1); transform: scale(1.02); }
-        
-        .colors { display: flex; gap: 15px; margin: 20px 0; justify-content: center; }
-        .dot { width: 40px; height: 40px; border-radius: 10px; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
-        .dot.active { border-color: white; transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
+        button { padding: 18px; font-size: 22px; font-weight: 900; background: var(--primary); border: none; border-radius: 15px; cursor: pointer; text-transform: uppercase; color: #000; width: 100%; margin-top: 10px; }
+
+        .faces { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+        .face-option { width: 50px; height: 50px; background: #222; border: 2px solid #444; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
+        .face-option.active { border-color: var(--primary); background: #333; transform: scale(1.1); }
+
+        .colors { display: flex; gap: 10px; margin: 15px 0; justify-content: center; }
+        .dot { width: 35px; height: 35px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; }
+        .dot.active { border-color: white; transform: scale(1.1); }
 
         #rotate-message { display: none; position: fixed; inset: 0; background: #000; color: white; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
         @media (orientation: portrait) { #rotate-message { display: flex; } }
@@ -29,20 +33,30 @@
 </head>
 <body>
 
-<div id="rotate-message"><h1>🔄</h1><h2>MODE PAYSAGE REQUIS</h2></div>
+<div id="rotate-message"><h1>🔄</h1><h2>PASSE EN PAYSAGE</h2></div>
 
 <div id="ui">
     <div class="container">
-        <h1 id="msg" style="margin-top:0;">GEO CRASH</h1>
-        <div id="best-score" style="color:#888; margin-bottom: 10px;">Record: 0</div>
+        <h1 style="margin:0 0 10px 0; font-size: 28px;">GEO CRASH</h1>
         
         <div class="menu-row">
+            <label>Difficulté</label>
             <select id="levelSelect">
-                <option value="facile">NIVEAU : FACILE</option>
-                <option value="moyen" selected>NIVEAU : MOYEN</option>
-                <option value="difficile">NIVEAU : DIFFICILE</option>
-                <option value="impossible">NIVEAU : IMPOSSIBLE</option>
+                <option value="facile">FACILE</option>
+                <option value="moyen" selected>MOYEN</option>
+                <option value="difficile">DIFFICILE</option>
+                <option value="impossible">IMPOSSIBLE</option>
             </select>
+        </div>
+
+        <div class="menu-row">
+            <label>Visage</label>
+            <div class="faces">
+                <div class="face-option active" data-face="happy">🙂</div>
+                <div class="face-option" data-face="cool">😎</div>
+                <div class="face-option" data-face="wow">😮</div>
+                <div class="face-option" data-face="angry">😡</div>
+            </div>
         </div>
 
         <div class="colors">
@@ -52,7 +66,7 @@
             <div class="dot" style="background:#0099ff" data-color="#0099ff"></div>
         </div>
         
-        <button id="playBtn">JOUER</button>
+        <button id="playBtn">LANCER</button>
     </div>
 </div>
 
@@ -64,26 +78,35 @@ const ctx = canvas.getContext("2d");
 const ui = document.getElementById("ui");
 const playBtn = document.getElementById("playBtn");
 
-let isPlaying = false, isPressing = false, isPaused = false;
+let isPlaying = false, isPressing = false;
 let groundY, ceilingY, score = 0, speed = 9, shake = 0;
-let obstacles = [], portals = [], pillars = [], particles = [];
+let obstacles = [], portals = [], pillars = [];
 let nextSpawn = 0, nextPortal = 600;
-
-let highScore = localStorage.getItem("geoCrashScore") || 0;
-let deaths = parseInt(localStorage.getItem("geoCrashDeaths")) || 0;
-document.getElementById("best-score").innerText = `Record: ${highScore}`;
 
 let player = {
     x: 150, y: 0, size: 40, vy: 0, gravity: 0.9, jump: -16, 
-    rot: 0, color: "#00ffcc", grounded: false, 
-    mode: "cube", gravDir: 1, jumpBuffer: 0
+    rot: 0, color: "#00ffcc", face: "happy", grounded: false, 
+    mode: "cube", gravDir: 1 
 };
 
-const diffSettings = {
-    facile: { spawnMin: 75, spawnMax: 95 },
-    moyen: { spawnMin: 50, spawnMax: 70 },
-    difficile: { spawnMin: 35, spawnMax: 50 },
-    impossible: { spawnMin: 22, spawnMax: 32 }
+const faces = {
+    happy: (c) => { 
+        c.fillRect(-10, -10, 5, 5); c.fillRect(5, -10, 5, 5); // Yeux
+        c.fillRect(-10, 5, 20, 3); // Bouche
+    },
+    cool: (c) => {
+        c.fillRect(-12, -10, 24, 6); // Lunettes
+        c.fillRect(-8, 5, 16, 2); // Sourire discret
+    },
+    wow: (c) => {
+        c.fillRect(-10, -10, 5, 5); c.fillRect(5, -10, 5, 5);
+        c.strokeRect(-4, 4, 8, 8); // Bouche ronde
+    },
+    angry: (c) => {
+        c.lineWidth = 2; c.beginPath(); c.moveTo(-12, -12); c.lineTo(-4, -8); c.moveTo(12, -12); c.lineTo(4, -8); c.stroke(); // Sourcils
+        c.fillRect(-10, -5, 4, 4); c.fillRect(6, -5, 4, 4);
+        c.fillRect(-8, 8, 16, 2);
+    }
 };
 
 function resize() {
@@ -93,221 +116,124 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- CONTROLES ---
-const startInput = () => {
-    isPressing = true;
-    if (isPlaying) player.jumpBuffer = 6; // Permet de sauter juste avant de toucher le sol
-};
-const endInput = () => isPressing = false;
-
-window.addEventListener('mousedown', startInput);
-window.addEventListener('mouseup', endInput);
-window.addEventListener('touchstart', (e) => { 
-    if(e.target.tagName !== "BUTTON" && e.target.tagName !== "SELECT") {
-        startInput(); e.preventDefault();
-    }
-}, {passive: false});
-window.addEventListener('touchend', endInput);
-window.addEventListener('keydown', (e) => { 
-    if(e.code === "Space") startInput();
-    if(e.code === "Escape") isPaused = !isPaused;
+// --- SELECTION ---
+document.querySelectorAll('.face-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.face-option').forEach(f => f.classList.remove('active'));
+        opt.classList.add('active'); player.face = opt.dataset.face;
+    });
 });
 
-function createParticles(x, y, color) {
-    for(let i=0; i<15; i++) {
-        particles.push({
-            x, y, 
-            vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15,
-            size: Math.random()*8, life: 1, color
-        });
-    }
-}
-
-playBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    deaths++;
-    localStorage.setItem("geoCrashDeaths", deaths);
-    speed = 9; score = 0; obstacles = []; portals = []; pillars = []; particles = [];
-    player.vy = 0; player.rot = 0; player.mode = "cube"; player.gravDir = 1;
-    player.y = groundY - player.size;
-    isPlaying = true; ui.style.opacity = "0";
-    setTimeout(() => { if(isPlaying) ui.style.display = "none"; }, 300);
-});
-
-function gameOver() {
-    isPlaying = false; shake = 25;
-    createParticles(player.x + 20, player.y + 20, player.color);
-    if (Math.floor(score/10) > highScore) {
-        highScore = Math.floor(score/10);
-        localStorage.setItem("geoCrashScore", highScore);
-    }
-    document.getElementById("msg").innerText = "TENTATIVE " + deaths;
-    document.getElementById("best-score").innerText = `Record: ${highScore}`;
-    ui.style.display = "flex"; ui.style.opacity = "1";
-}
-
-function update() {
-    if (!isPlaying || isPaused) return;
-
-    // Buffers et Physique
-    if (player.jumpBuffer > 0) player.jumpBuffer--;
-    
-    if (player.mode === "ship") {
-        player.vy += (isPressing ? -0.85 : 0.85) * player.gravDir;
-        player.vy *= 0.95;
-        player.rot = player.vy * 2.5;
-    } else {
-        player.vy += player.gravity * player.gravDir;
-        if (player.jumpBuffer > 0 && player.grounded) {
-            player.vy = player.jump * player.gravDir;
-            player.grounded = false;
-            player.jumpBuffer = 0;
-        }
-        if (!player.grounded) player.rot += 6 * player.gravDir;
-    }
-    player.y += player.vy;
-
-    // Collisions Sols
-    let limit = player.gravDir === 1 ? groundY - player.size : ceilingY;
-    if ((player.gravDir === 1 && player.y >= limit) || (player.gravDir === -1 && player.y <= limit)) {
-        player.y = limit; player.vy = 0; player.grounded = true; 
-        if(player.mode === "cube") player.rot = Math.round(player.rot/90)*90;
-    } else {
-        player.grounded = false;
-    }
-
-    if (player.y < ceilingY - 30 || player.y > groundY + 30) gameOver();
-
-    // Spawn intelligent
-    if (nextSpawn-- <= 0) {
-        const config = diffSettings[document.getElementById("levelSelect").value];
-        if (player.mode === "cube") {
-            let count = Math.floor(Math.random() * 3) + 1;
-            for(let i=0; i<count; i++) obstacles.push({ x: canvas.width + (i*32), w: 32, h: 38, type: player.gravDir === 1 ? 'bottom' : 'top' });
-        } else {
-            let gap = 190;
-            let h = 40 + Math.random() * (groundY - ceilingY - gap - 40);
-            pillars.push({ x: canvas.width, w: 60, h: h, pos: 'top' });
-            pillars.push({ x: canvas.width, w: 60, h: (groundY-ceilingY)-h-gap, pos: 'bottom' });
-        }
-        nextSpawn = config.spawnMin + Math.random() * (config.spawnMax - config.spawnMin);
-    }
-
-    if (score > nextPortal) {
-        portals.push({ x: canvas.width, type: player.mode === "cube" ? "ship" : "cube", grav: Math.random() > 0.7 ? -player.gravDir : player.gravDir });
-        nextPortal = score + 1300;
-    }
-
-    // Update objets
-    [obstacles, portals, pillars].forEach(list => {
-        for(let i = list.length-1; i >= 0; i--) {
-            let obj = list[i];
-            obj.x -= speed;
-            if(obj.x < -100) list.splice(i, 1);
-            
-            // Collision
-            let m = 10;
-            if (player.x + player.size - m > obj.x && player.x + m < obj.x + (obj.w || 30)) {
-                if (obj.h) {
-                    let yMin = (obj.type === 'top' || obj.pos === 'top') ? ceilingY : groundY - obj.h;
-                    let yMax = (obj.type === 'top' || obj.pos === 'top') ? ceilingY + obj.h : groundY;
-                    if (player.y + player.size - m > yMin && player.y + m < yMax) gameOver();
-                } else {
-                    player.mode = obj.type; player.gravDir = obj.grav;
-                    list.splice(i, 1);
-                }
-            }
-        }
-    });
-
-    particles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-        if(p.life <= 0) particles.splice(i, 1);
-    });
-
-    score++;
-}
-
-function draw() {
-    ctx.save();
-    if (shake > 0) { ctx.translate(Math.random()*shake-shake/2, Math.random()*shake-shake/2); shake *= 0.9; }
-    
-    // Fond et Grille
-    ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#111"; ctx.lineWidth = 1;
-    for(let i=0; i<canvas.width; i+=80) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
-
-    if (isPlaying) {
-        ctx.textAlign = "center"; ctx.font = "bold 100px Arial";
-        ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
-        ctx.fillText("TENTATIVE " + deaths, canvas.width/2, canvas.height/2 + 40);
-    }
-
-    // Sols
-    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 80); ctx.fillRect(0, 0, canvas.width, ceilingY);
-    ctx.fillStyle = player.color; ctx.fillRect(0, groundY, canvas.width, 3); ctx.fillRect(0, ceilingY, canvas.width, 3);
-
-    // Portails
-    portals.forEach(p => {
-        ctx.fillStyle = p.type === "ship" ? "#ff00ff" : "#00ffff";
-        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-        ctx.fillRect(p.x, ceilingY, 30, groundY - ceilingY);
-        ctx.shadowBlur = 0;
-    });
-
-    // Piliers
-    pillars.forEach(p => {
-        ctx.fillStyle = "#1a1a1a"; ctx.strokeStyle = player.color;
-        let y = p.pos === 'top' ? ceilingY : groundY - p.h;
-        ctx.fillRect(p.x, y, p.w, p.h); ctx.strokeRect(p.x, y, p.w, p.h);
-    });
-
-    // Particules
-    particles.forEach(p => {
-        ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-    });
-    ctx.globalAlpha = 1;
-
-    // Joueur
-    ctx.save();
-    ctx.translate(player.x + player.size/2, player.y + player.size/2);
-    ctx.rotate(player.rot * Math.PI / 180);
-    ctx.fillStyle = player.color;
-    ctx.shadowBlur = 15; ctx.shadowColor = player.color;
-    if(player.mode === "ship") {
-        ctx.beginPath(); ctx.moveTo(-22, 18); ctx.lineTo(28, 0); ctx.lineTo(-22, -18); ctx.fill();
-        ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
-    } else {
-        ctx.fillRect(-20, -20, 40, 40); ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(-20, -20, 40, 40);
-    }
-    ctx.restore();
-
-    // Piques
-    ctx.fillStyle = "#ff0055"; ctx.shadowBlur = 10; ctx.shadowColor = "#ff0055";
-    obstacles.forEach(o => {
-        ctx.beginPath();
-        let yBase = o.type === 'bottom' ? groundY : ceilingY;
-        let yTip = o.type === 'bottom' ? groundY - o.h : ceilingY + o.h;
-        ctx.moveTo(o.x, yBase); ctx.lineTo(o.x + 16, yTip); ctx.lineTo(o.x + 32, yBase);
-        ctx.fill();
-    });
-
-    ctx.restore();
-    update();
-    requestAnimationFrame(draw);
-}
-
-// Sélecteur de couleur
 document.querySelectorAll('.dot').forEach(dot => {
-    dot.addEventListener('click', (e) => {
-        e.stopPropagation();
+    dot.addEventListener('click', () => {
         document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
         dot.classList.add('active'); player.color = dot.dataset.color;
         document.documentElement.style.setProperty('--primary', player.color);
     });
 });
 
+// --- JEU ---
+playBtn.addEventListener('click', () => {
+    isPlaying = true; ui.style.display = "none";
+    score = 0; obstacles = []; portals = []; pillars = [];
+    player.vy = 0; player.rot = 0; player.mode = "cube"; player.gravDir = 1;
+    player.y = groundY - player.size;
+});
+
+const jump = () => { if (player.grounded) { player.vy = player.jump * player.gravDir; player.grounded = false; } };
+window.addEventListener('mousedown', () => { if(isPlaying) { isPressing = true; if(player.mode === "cube") jump(); }});
+window.addEventListener('mouseup', () => isPressing = false);
+window.addEventListener('touchstart', (e) => { if(isPlaying && e.target.tagName !== "BUTTON") { isPressing = true; if(player.mode === "cube") jump(); e.preventDefault(); } }, {passive: false});
+window.addEventListener('touchend', () => isPressing = false);
+
+function gameOver() {
+    isPlaying = false; shake = 20; ui.style.display = "flex";
+}
+
+function update() {
+    if (!isPlaying) return;
+    if (player.mode === "ship") {
+        player.vy += (isPressing ? -0.8 : 0.8) * player.gravDir;
+        player.vy *= 0.95; player.rot = player.vy * 2;
+    } else {
+        player.vy += player.gravity * player.gravDir;
+        if (!player.grounded) player.rot += 6 * player.gravDir;
+    }
+    player.y += player.vy;
+
+    if (player.y >= groundY - player.size && player.gravDir === 1) {
+        player.y = groundY - player.size; player.vy = 0; player.grounded = true; player.rot = Math.round(player.rot/90)*90;
+    } else if (player.y <= ceilingY && player.gravDir === -1) {
+        player.y = ceilingY; player.vy = 0; player.grounded = true; player.rot = Math.round(player.rot/90)*90;
+    } else player.grounded = false;
+
+    if (player.y < ceilingY - 20 || player.y > groundY + 20) gameOver();
+
+    if (nextSpawn-- <= 0) {
+        if (player.mode === "cube") {
+            let n = Math.floor(Math.random() * 3) + 1;
+            for(let i=0; i<n; i++) obstacles.push({ x: canvas.width + (i*32), w: 32, h: 38, type: player.gravDir === 1 ? 'bottom' : 'top' });
+        } else {
+            let gap = 180, h = 40 + Math.random() * (groundY - ceilingY - gap - 40);
+            pillars.push({ x: canvas.width, w: 60, h: h, pos: 'top' }, { x: canvas.width, w: 60, h: (groundY-ceilingY)-h-gap, pos: 'bottom' });
+        }
+        nextSpawn = 45 + Math.random() * 30;
+    }
+
+    if (score > nextPortal) {
+        portals.push({ x: canvas.width, type: player.mode === "cube" ? "ship" : "cube", grav: Math.random() > 0.8 ? -player.gravDir : player.gravDir });
+        nextPortal = score + 1200;
+    }
+
+    [obstacles, portals, pillars].forEach(list => {
+        for(let i=list.length-1; i>=0; i--) {
+            let o = list[i]; o.x -= speed;
+            if(o.x < -100) list.splice(i, 1);
+            let m = 8;
+            if (player.x + player.size - m > o.x && player.x + m < o.x + (o.w || 30)) {
+                if (o.h) {
+                    let yMin = (o.type === 'top' || o.pos === 'top') ? ceilingY : groundY - o.h;
+                    let yMax = (o.type === 'top' || o.pos === 'top') ? ceilingY + o.h : groundY;
+                    if (player.y + player.size - m > yMin && player.y + m < yMax) gameOver();
+                } else { player.mode = o.type; player.gravDir = o.grav; list.splice(i, 1); }
+            }
+        }
+    });
+    score++;
+}
+
+function draw() {
+    ctx.save();
+    if (shake > 0) { ctx.translate(Math.random()*shake-shake/2, Math.random()*shake-shake/2); shake *= 0.9; }
+    ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 80); ctx.fillRect(0, 0, canvas.width, ceilingY);
+    ctx.fillStyle = player.color; ctx.fillRect(0, groundY, canvas.width, 3); ctx.fillRect(0, ceilingY, canvas.width, 3);
+
+    pillars.forEach(p => { ctx.fillStyle = "#1a1a1a"; ctx.strokeStyle = player.color; let y = p.pos === 'top' ? ceilingY : groundY - p.h; ctx.fillRect(p.x, y, p.w, p.h); ctx.strokeRect(p.x, y, p.w, p.h); });
+    portals.forEach(p => { ctx.fillStyle = p.type === "ship" ? "#ff00ff" : "#00ffff"; ctx.fillRect(p.x, ceilingY, 30, groundY - ceilingY); });
+
+    ctx.save();
+    ctx.translate(player.x + player.size/2, player.y + player.size/2);
+    ctx.rotate(player.rot * Math.PI / 180);
+    ctx.fillStyle = player.color;
+    if(player.mode === "ship") {
+        ctx.beginPath(); ctx.moveTo(-22, 18); ctx.lineTo(28, 0); ctx.lineTo(-22, -18); ctx.fill();
+        ctx.strokeStyle = "white"; ctx.stroke();
+    } else {
+        ctx.fillRect(-20, -20, 40, 40); ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeRect(-20, -20, 40, 40);
+    }
+    // Dessin du visage
+    ctx.fillStyle = "white"; ctx.strokeStyle = "white"; faces[player.face](ctx);
+    ctx.restore();
+
+    ctx.fillStyle = "#ff0055";
+    obstacles.forEach(o => { ctx.beginPath(); let yB = o.type === 'bottom' ? groundY : ceilingY; let yT = o.type === 'bottom' ? groundY - o.h : ceilingY + o.h; ctx.moveTo(o.x, yB); ctx.lineTo(o.x + 16, yT); ctx.lineTo(o.x + 32, yB); ctx.fill(); });
+
+    ctx.restore();
+    update();
+    requestAnimationFrame(draw);
+}
 draw();
 </script>
 </body>
