@@ -3,58 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geometry Rhythm - Fix</title>
+    <title>Geometry Rhythm Fix</title>
     <style>
         :root { --primary: #00ffcc; --gold: #ffcc00; --admin: #ff0055; }
-        * { box-sizing: border-box; user-select: none; touch-action: none; }
+        * { box-sizing: border-box; user-select: none; touch-action: manipulation; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
-        canvas { display: block; }
         
-        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.8); z-index: 100; color: white; }
-        .container { text-align: center; padding: 20px; border: 3px solid var(--primary); border-radius: 20px; background: #111; width: 90%; max-width: 400px; }
+        /* UI Prioritaire */
+        #ui { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.85); z-index: 1000; }
+        .container { text-align: center; padding: 30px; border: 3px solid var(--primary); border-radius: 25px; background: #111; width: 85%; max-width: 350px; }
         
-        .shop { background: #1a1a1a; padding: 10px; border-radius: 15px; margin: 15px 0; }
-        .power-btn { background: #333; border: 2px solid #555; color: white; padding: 12px; border-radius: 10px; cursor: pointer; width: 100%; margin-bottom: 8px; display: flex; justify-content: space-between; font-weight: bold; }
+        .shop { background: #1a1a1a; padding: 10px; border-radius: 15px; margin-bottom: 20px; }
+        .power-btn { background: #333; border: 2px solid #555; color: white; padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 8px; display: flex; justify-content: space-between; cursor: pointer; }
         .power-btn.owned { border-color: var(--primary); color: var(--primary); }
         
-        #playBtn { padding: 20px; font-size: 22px; background: var(--primary); border: none; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 900; }
-        
-        #stats { position: absolute; top: 15px; left: 15px; color: white; z-index: 50; display: flex; gap: 10px; }
-        .badge { background: rgba(0,0,0,0.7); padding: 5px 12px; border-radius: 15px; border: 1px solid var(--gold); }
+        /* Bouton JOUER stylisé et fonctionnel */
+        #playBtn { 
+            padding: 20px; font-size: 24px; background: var(--primary); border: none; 
+            border-radius: 15px; width: 100%; font-weight: 900; cursor: pointer;
+            box-shadow: 0 6px 0 #008877; active: transform: translateY(4px);
+        }
+        #playBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #008877; background: #00e6b8; }
 
-        #adminToggle { position: absolute; bottom: 15px; right: 15px; z-index: 200; font-size: 30px; cursor: pointer; opacity: 0.5; }
+        #stats { position: absolute; top: 15px; left: 15px; color: white; z-index: 100; display: flex; gap: 10px; }
+        .badge { background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; border: 1px solid var(--gold); font-weight: bold; }
+        
+        #adminToggle { position: absolute; bottom: 20px; right: 20px; z-index: 1100; font-size: 35px; cursor: pointer; }
         #adminPanel { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #000; border: 2px solid var(--admin); padding: 20px; border-radius: 15px;
-            display: none; z-index: 300; width: 280px; color: white; 
+            background: #050505; border: 3px solid var(--admin); padding: 20px; border-radius: 20px;
+            display: none; z-index: 2000; width: 280px; color: white; 
         }
-        .admin-row { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+        canvas { display: block; position: absolute; top: 0; left: 0; }
     </style>
 </head>
 <body>
 
 <div id="stats">
     <div class="badge">🪙 <span id="coinTotal">0</span></div>
-    <div class="badge" style="border-color: red;">💀 <span id="deathTotal">0</span></div>
+    <div class="badge" style="border-color: #ff4444;">💀 <span id="deathTotal">0</span></div>
 </div>
 
-<div id="adminToggle">⚙️</div>
+<div id="adminToggle" onclick="openAdmin()">⚙️</div>
 
 <div id="adminPanel">
-    <h3 style="color:var(--admin); margin-top:0;">ADMIN</h3>
-    <div class="admin-row"><span>GOD MODE</span><input type="checkbox" id="godCheck"></div>
-    <div class="admin-row"><span>VAISSEAU</span><input type="checkbox" id="shipCheck"></div>
-    <div class="admin-row"><span>PIÈCES</span><button onclick="addMoney()" style="background:var(--admin); color:white; border:none; padding:5px 10px; border-radius:5px;">+1000</button></div>
-    <button onclick="closeAdmin()" style="width:100%; padding:8px; background:#444; color:white; border:none; border-radius:5px;">FERMER</button>
+    <h2 style="color:var(--admin); margin:0 0 15px 0;">MOD MENU</h2>
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <span>GOD MODE</span><input type="checkbox" id="godCheck" style="transform:scale(1.5)">
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+        <span>VAISSEAU</span><input type="checkbox" id="shipCheck" style="transform:scale(1.5)">
+    </div>
+    <button onclick="addMoney()" style="width:100%; padding:10px; background:var(--admin); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px;">+1000 PIÈCES</button>
+    <button onclick="closeAdmin()" style="width:100%; padding:10px; background:#333; color:white; border:none; border-radius:8px;">FERMER</button>
 </div>
 
 <div id="ui">
     <div class="container">
-        <h1 style="color:var(--primary); margin-bottom:20px;">RHYTHM CRASH</h1>
+        <h1 style="color:var(--primary); margin-top:0;">RHYTHM CRASH</h1>
         <div class="shop">
-            <button class="power-btn" id="buyJump"><span>🔥 SAUT FEU</span><span id="txtJump">50 🪙</span></button>
-            <button class="power-btn" id="buySpeed"><span>⚡ BOOST</span><span id="txtSpeed">80 🪙</span></button>
-            <div onclick="resetPowers()" style="font-size:11px; color:#777; margin-top:10px; cursor:pointer; text-decoration:underline;">Désactiver les boosts</div>
+            <div class="power-btn" id="buyJump" onclick="buy('jump')"><span>🔥 SAUT FEU</span><span id="txtJump">50 🪙</span></div>
+            <div class="power-btn" id="buySpeed" onclick="buy('speed')"><span>⚡ BOOST</span><span id="txtSpeed">80 🪙</span></div>
+            <div onclick="resetPowers()" style="font-size:12px; color:#666; text-decoration:underline; cursor:pointer;">Reset les pouvoirs</div>
         </div>
         <button id="playBtn">JOUER</button>
     </div>
@@ -66,130 +76,145 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Données
+// --- VARIABLES ---
 let coins = parseInt(localStorage.getItem("coins")) || 0;
 let deaths = parseInt(localStorage.getItem("deaths")) || 0;
 let powers = JSON.parse(localStorage.getItem("powers")) || { jump: false, speed: false };
 let isPlaying = false, godMode = false, shipMode = false;
-let obstacles = [], goldCoins = [], groundY;
+let obstacles = [], groundY;
 
-let player = { x: 80, y: 0, size: 35, vy: 0, grav: 0.8, jump: -14, rot: 0, grounded: false };
+let player = { x: 80, y: 0, size: 38, vy: 0, grav: 0.8, jump: -15, rot: 0, grounded: false };
 
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    groundY = canvas.height - 150;
+    groundY = canvas.height - 180;
 }
 window.onresize = resize;
 resize();
 
-// --- Fonctions Boutons ---
+// --- SYSTÈME DE JEU ---
 function updateUI() {
     document.getElementById("coinTotal").innerText = coins;
     document.getElementById("deathTotal").innerText = deaths;
     document.getElementById("buyJump").className = powers.jump ? "power-btn owned" : "power-btn";
     document.getElementById("buySpeed").className = powers.speed ? "power-btn owned" : "power-btn";
-    document.getElementById("txtJump").innerText = powers.jump ? "OK" : "50 🪙";
-    document.getElementById("txtSpeed").innerText = powers.speed ? "OK" : "80 🪙";
+    document.getElementById("txtJump").innerText = powers.jump ? "ACTIF" : "50 🪙";
+    document.getElementById("txtSpeed").innerText = powers.speed ? "ACTIF" : "80 🪙";
 }
 
-document.getElementById("playBtn").onclick = () => {
+// LE BOUTON JOUER (FIXED)
+document.getElementById("playBtn").addEventListener("click", function(e) {
+    e.stopPropagation();
+    startGame();
+});
+
+function startGame() {
     isPlaying = true;
-    obstacles = []; goldCoins = [];
-    player.y = groundY - player.size; player.vy = 0; player.rot = 0;
+    obstacles = [];
+    player.y = groundY - player.size;
+    player.vy = 0;
+    player.rot = 0;
     document.getElementById("ui").style.display = "none";
-};
+}
 
-document.getElementById("buyJump").onclick = () => {
-    if(coins >= 50 && !powers.jump) { coins -= 50; powers.jump = true; save(); updateUI(); }
-};
-
-document.getElementById("buySpeed").onclick = () => {
-    if(coins >= 80 && !powers.speed) { coins -= 80; powers.speed = true; save(); updateUI(); }
-};
+// --- BOUTONS ACTIONS ---
+function buy(type) {
+    if(type === 'jump' && coins >= 50 && !powers.jump) { coins -= 50; powers.jump = true; }
+    if(type === 'speed' && coins >= 80 && !powers.speed) { coins -= 80; powers.speed = true; }
+    save(); updateUI();
+}
 
 function resetPowers() { powers.jump = false; powers.speed = false; save(); updateUI(); }
 function addMoney() { coins += 1000; save(); updateUI(); }
+function openAdmin() { document.getElementById("adminPanel").style.display = "block"; }
+function closeAdmin() { document.getElementById("adminPanel").style.display = "none"; }
 function save() { localStorage.setItem("coins", coins); localStorage.setItem("deaths", deaths); localStorage.setItem("powers", JSON.stringify(powers)); }
 
-// Admin
-document.getElementById("adminToggle").onclick = () => document.getElementById("adminPanel").style.display = "block";
-function closeAdmin() { document.getElementById("adminPanel").style.display = "none"; }
 document.getElementById("godCheck").onchange = (e) => godMode = e.target.checked;
 document.getElementById("shipCheck").onchange = (e) => shipMode = e.target.checked;
 
-// --- Jeu ---
+// --- INPUTS ---
 let pressing = false;
-window.onmousedown = window.ontouchstart = (e) => { 
-    pressing = true; 
-    if(isPlaying && (player.grounded || shipMode)) {
-        player.vy = powers.jump ? player.jump * 1.1 : player.jump;
+function handleStart(e) {
+    if (!isPlaying) return;
+    pressing = true;
+    if (player.grounded || shipMode) {
+        player.vy = powers.jump ? player.jump * 1.15 : player.jump;
         player.grounded = false;
     }
-    if(e.type === 'touchstart') e.preventDefault();
-};
-window.onmouseup = window.ontouchend = () => pressing = false;
+}
+window.addEventListener("mousedown", handleStart);
+window.addEventListener("touchstart", (e) => { if(isPlaying) { handleStart(); e.preventDefault(); } }, {passive: false});
+window.addEventListener("mouseup", () => pressing = false);
+window.addEventListener("touchend", () => pressing = false);
 
+// --- BOUCLE DE JEU ---
 function loop() {
-    ctx.fillStyle = "#0a0a0a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050505";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Sol
-    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 150);
-    ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
+    ctx.fillStyle = "#111"; ctx.fillRect(0, groundY, canvas.width, 180);
+    ctx.strokeStyle = varColor("--primary"); ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
 
     if(isPlaying) {
-        let speed = powers.speed ? 13 : 9;
+        let currentSpeed = powers.speed ? 14 : 10;
 
-        // Joueur
-        if(shipMode && pressing) player.vy -= 1.5;
+        if(shipMode && pressing) player.vy -= 1.6;
         player.vy += player.grav;
         player.y += player.vy;
 
+        // Limite Sol
         if(player.y > groundY - player.size) {
             player.y = groundY - player.size; player.vy = 0; player.grounded = true;
             if(!shipMode) player.rot = Math.round(player.rot/90)*90;
         } else {
             player.grounded = false;
-            player.rot += shipMode ? player.vy : 8;
+            player.rot += shipMode ? player.vy * 1.5 : 8;
         }
 
-        // Obstacles (Pics de 1 à 3)
-        if(Math.random() < 0.02 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
+        // Obstacles
+        if(Math.random() < 0.02 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 350)) {
             obstacles.push({x: canvas.width, n: Math.floor(Math.random()*3)+1});
         }
 
         for(let i=obstacles.length-1; i>=0; i--) {
             let o = obstacles[i];
-            o.x -= speed;
+            o.x -= currentSpeed;
             
-            // Dessin Pic (Degradé)
             ctx.fillStyle = "#ff0055";
             for(let j=0; j<o.n; j++) {
-                let px = o.x + (j*30);
-                ctx.beginPath(); ctx.moveTo(px, groundY); ctx.lineTo(px+15, groundY-35); ctx.lineTo(px+30, groundY); ctx.fill();
+                let px = o.x + (j*32);
+                ctx.beginPath(); ctx.moveTo(px, groundY); ctx.lineTo(px+16, groundY-38); ctx.lineTo(px+32, groundY); ctx.fill();
                 
                 // Collision
-                if(!godMode && player.x < px+25 && player.x+player.size > px+5 && player.y+player.size > groundY-30) {
+                if(!godMode && player.x < px+28 && player.x+player.size > px+4 && player.y+player.size > groundY-32) {
                     isPlaying = false; deaths++; save(); updateUI();
                     document.getElementById("ui").style.display = "flex";
                 }
             }
-            if(o.x < -100) obstacles.splice(i, 1);
+            if(o.x < -150) obstacles.splice(i, 1);
         }
 
         // Dessin Joueur
         ctx.save();
         ctx.translate(player.x+player.size/2, player.y+player.size/2);
         ctx.rotate(player.rot * Math.PI/180);
-        ctx.fillStyle = "#00ffcc"; ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-        ctx.strokeStyle = "white"; ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
+        ctx.fillStyle = varColor("--primary");
+        ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
+        ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+        ctx.strokeRect(-player.size/2, -player.size/2, player.size, player.size);
         // Visage
-        ctx.fillStyle = "white"; ctx.fillRect(5, -10, 6, 6); ctx.fillRect(5, 4, 6, 6);
+        ctx.fillStyle = "white"; ctx.fillRect(6, -12, 7, 7); ctx.fillRect(6, 4, 7, 7);
         ctx.restore();
     }
 
     requestAnimationFrame(loop);
 }
+
+function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name); }
 
 updateUI();
 loop();
